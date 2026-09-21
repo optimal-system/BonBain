@@ -12,7 +12,7 @@ Chaque plage décrit ses conditions optimales de baignade :
 MER_MANCHE = "Manche"
 
 
-def plage_tourony():
+def tourony():
     return {
         "nom": "Tourony",
         "mer": MER_MANCHE,
@@ -73,7 +73,7 @@ def _plage_caroual():
 
 def base_plages():
     return [
-        plage_tourony(),
+        tourony(),
         _plage_saint_michel_en_grève(),
         _plage_st_evette(),
         _plage_caroual(),
