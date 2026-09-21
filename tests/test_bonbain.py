@@ -37,11 +37,11 @@ def fabriquer_ouvrir(reponses):
 
 class TestBasePlages(unittest.TestCase):
     def test_tourony(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         self.assertEqual(plage["nom"], "Tourony")
         self.assertEqual(plage["mer"], "Manche")
-        self.assertAlmostEqual(plage["latitude"], 48.829571)
-        self.assertAlmostEqual(plage["longitude"], -3.498734)
+        self.assertAlmostEqual(plage["latitude"], 48.829045)
+        self.assertAlmostEqual(plage["longitude"], -3.495338)
         self.assertEqual(plage["orientation_mer"], (340, 30))
         self.assertEqual(plage["hauteurs_eau_coef"], ((20, 0), (50, 5), (70, 7), (120, 10)))
         self.assertIn("château", plage["description"])
@@ -74,7 +74,7 @@ class TestOPSYS(unittest.TestCase):
             self.assertLessEqual(coefficient, 120)
 
     def test_hauteur_eau_plage_interpolation(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         self.assertEqual(opsys.hauteur_eau_plage(plage, 20)[0], 0)
         self.assertEqual(opsys.hauteur_eau_plage(plage, 50)[0], 5)
         self.assertEqual(opsys.hauteur_eau_plage(plage, 70)[0], 7)
@@ -82,7 +82,7 @@ class TestOPSYS(unittest.TestCase):
         self.assertAlmostEqual(opsys.hauteur_eau_plage(plage, 60)[0], 6.0)
 
     def test_type_plage_selon_coef(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         self.assertEqual(opsys.type_plage(plage, 20), "boue")
         self.assertEqual(opsys.type_plage(plage, 50), "galets")
         self.assertEqual(opsys.type_plage(plage, 100), "sable")
@@ -106,11 +106,11 @@ class TestCollecte(unittest.TestCase):
         self.assertEqual(conditions["source"], "openweathermap")
 
     def test_collecte_openweathermap_sans_cle(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         self.assertIsNone(collecte.collecter_openweathermap(plage))
 
     def test_collecte_openweathermap_ok(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         reponse = json.dumps({
             "cod": 200,
             "wind": {"speed": 5.0, "deg": 200.0},
@@ -125,7 +125,7 @@ class TestCollecte(unittest.TestCase):
         self.assertAlmostEqual(conditions["vent_vitesse_ms"], 5.0)
 
     def test_collecte_openweathermap_erreur_reseau(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
 
         def ouvrir(url, timeout=10):
             raise OSError("pas de réseau")
@@ -135,7 +135,7 @@ class TestCollecte(unittest.TestCase):
         )
 
     def test_collecte_copernicus_ok(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         reponse = json.dumps({
             "current": {"time": "2026-09-21T09:00", "interval": 900,
                         "sea_surface_temperature": 16.4}
@@ -187,13 +187,13 @@ class TestAnalyse(unittest.TestCase):
         self.assertEqual(analyse.note_globale(notes), 0.0)
 
     def test_frequentation(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         self.assertEqual(analyse.niveau_frequentation(plage, 1), "faible")
         self.assertEqual(analyse.niveau_frequentation(plage, 5), "moyen")
         self.assertEqual(analyse.niveau_frequentation(plage, 8), "bondé")
 
     def test_evaluer_plage_complete(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
         conditions = {
             "vent_vitesse_ms": 2.5,
             "vent_direction_deg": 180.0,
@@ -233,7 +233,7 @@ class TestServeur(unittest.TestCase):
         self.assertEqual(etat["coefficient_maree"], 70)
 
     def test_collecte_degradee_simulation(self):
-        plage = base_plages.plage_tourony()
+        plage = base_plages.tourony()
 
         def ouvrir(url, timeout=10):
             raise OSError("pas de réseau")

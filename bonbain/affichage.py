@@ -10,6 +10,7 @@ génère une image PNG (backend Agg) — typiquement sur un Raspberry Pico W.
 """
 
 import logging
+import os
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -130,6 +131,8 @@ def afficher_resultats(rapports, chemin_image="resultats/carte_bonbain.png",
     tableau_leds(fig, meilleur)
     aiguille_vent(fig, meilleur["direction_vent_deg"], meilleur["vitesse_vent_ms"])
     if chemin_image:
+        dossier = os.path.dirname(os.path.abspath(chemin_image))
+        os.makedirs(dossier, exist_ok=True)
         fig.savefig(chemin_image, dpi=100)
         LOGGER.info("Affichage généré : %s", chemin_image)
     return fig
