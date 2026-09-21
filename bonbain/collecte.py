@@ -12,10 +12,14 @@ réponse au Raspberry Pico W, même en mode dégradé.
 
 import json
 import logging
+import os
 import urllib.error
 import urllib.request
 
 LOGGER = logging.getLogger("bonbain.collecte")
+
+CLE_API_VARIABLE_ENV = "BONBAIN_OPENWEATHERMAP_KEY"
+API_KEY = os.environ.get(CLE_API_VARIABLE_ENV, "")
 
 OPENWEATHERMAP_URL = (
     "https://api.openweathermap.org/data/2.5/weather"
@@ -33,11 +37,15 @@ REQUETE_TIMEOUT = 10
 def collecter_openweathermap(plage, apikey=None, ouvrir=None, log=None):
     """Collecte la météo OpenWeatherMap pour une plage.
 
+    La clé est prise depuis l'argument `apikey`, sinon depuis la variable
+    d'environnement BONBAIN_OPENWEATHERMAP_KEY (lue au chargement du module).
     `ouvrir` permet d'injecter une fonction d'ouverture d'URL (pour les tests).
     Retourne un dictionnaire de conditions normalisées, ou None.
     """
     if ouvrir is None:
         ouvrir = _ouvrir_url
+    if not apikey:
+        apikey = API_KEY
     if not apikey:
         LOGGER.warning("OpenWeatherMap : pas de clé API, source ignorée")
         return None
