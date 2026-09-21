@@ -14,6 +14,8 @@ import logging
 import matplotlib
 import matplotlib.pyplot as plt
 
+import bonbain.fond_carte as fond_carte
+
 LOGGER = logging.getLogger("bonbain.affichage")
 
 COULEURS_LED = {
@@ -28,21 +30,26 @@ POINTES = ["N", "NNE", "NE", "ENE", "E", "ESE", "SE", "SSE",
            "S", "SSO", "SO", "OSO", "O", "ONO", "NO", "NNO"]
 
 
-def carte_plages(rapports, chemin_image=None):
-    """Carte des plages avec marqueurs colorés selon le score, LEDs et aiguille
-    du vent de la meilleure plage. Retourne la figure matplotlib."""
+def carte_plages(rapports, chemin_image=None, zoom=fond_carte.ZOOM_DEFAUT):
+    """Carte des plages avec fond OpenStreetMap, marqueurs colorés selon le
+    score, LEDs et aiguille du vent de la meilleure plage. Retourne la figure."""
     fig = plt.figure(figsize=(12, 8))
     ax_carte = fig.add_axes([0.05, 0.35, 0.6, 0.6])
-    longueurs = [r["longitude"] for r in rapports]
-    latitudes = [r["latitude"] for r in rapports]
-    marge_lon = max(0.05, (max(longueurs) - min(longueurs)) * 0.3)
-    marge_lat = max(0.05, (max(latitudes) - min(latitudes)) * 0.3)
-    ax_carte.set_xlim(min(longueurs) - marge_lon, max(longueurs) + marge_lon)
-    ax_carte.set_ylim(min(latitudes) - marge_lat, max(latitudes) + marge_lat)
-    ax_carte.set_facecolor("#bae6fd")
+    if not fond_carte.afficher_fond(ax_carte, rapports, zoom=zoom):
+        longueurs = [r["longitude"] for r in rapports]
+        latitudes = [r["latitude"] for r in rapports]
+        marge_lon = max(0.05, (max(longueurs) - min(longueurs)) * 0.3)
+        marge_lat = max(0.05, (max(latitudes) - min(latitudes)) * 0.3)
+        ax_carte.set_xlim(min(longueurs) - marge_lon, max(longueurs) + marge_lon)
+        ax_carte.set_ylim(min(latitudes) - marge_lat, max(latitudes) + marge_lat)
+        ax_carte.set_facecolor("#bae6fd")
     ax_carte.set_title("BonBain — où se baigner aujourd'hui ?")
     ax_carte.set_xlabel("Longitude")
     ax_carte.set_ylabel("Latitude")
+    ax_carte.text(
+        0.99, 0.01, "© OpenStreetMap contributors",
+        transform=ax_carte.transAxes, ha="right", va="bottom", fontsize=7,
+    )
     for i, rapport in enumerate(rapports, start=1):
         couleur = COULEURS_LED[rapport["couleur_led"]]
         ax_carte.scatter(
@@ -114,11 +121,12 @@ def _polaires_vers_xy(angle_deg, rayon):
     return rayon * math.sin(angle_rad), rayon * math.cos(angle_rad)
 
 
-def afficher_resultats(rapports, chemin_image="resultats/carte_bonbain.png"):
+def afficher_resultats(rapports, chemin_image="resultats/carte_bonbain.png",
+                        zoom=fond_carte.ZOOM_DEFAUT):
     """Génère l'affichage complet et sauvegarde l'image. Retourne la figure."""
     rapports_classes = sorted(rapports, key=lambda r: r["score"], reverse=True)
     meilleur = rapports_classes[0]
-    fig = carte_plages(rapports_classes, chemin_image=None)
+    fig = carte_plages(rapports_classes, chemin_image=None, zoom=zoom)
     tableau_leds(fig, meilleur)
     aiguille_vent(fig, meilleur["direction_vent_deg"], meilleur["vitesse_vent_ms"])
     if chemin_image:
